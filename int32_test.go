@@ -4,7 +4,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/mimuret/cast"
+	cast "github.com/mimuret/intcast"
 )
 
 func TestInt32(t *testing.T) {
