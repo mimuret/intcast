@@ -1,4 +1,4 @@
-package cast_test
+package intcast_test
 
 import (
 	"math"
