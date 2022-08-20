@@ -1,34 +1,35 @@
-name: ci
-on: 
+name: Go
+
+on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
-  workflow_dispatch:
-    branches:
-      - "*"
+    branches: [ main ]
+
 jobs:
-  test:
-    name: Test
+  go-versions:
     runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.versions.outputs.value }}
     steps:
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
-
-    - name: Set up Go 1.16
-      uses: actions/setup-go@v2
+      - id: versions
+        run: |
+          versions=$(curl -s 'https://go.dev/dl/?mode=json' | jq -c 'map(.version[2:])')
+          echo "::set-output name=value::${versions}"
+  test:
+    needs: go-versions
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version: ${{fromJson(needs.go-versions.outputs.versions)}}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v3
       with:
-        go-version: 1.16
-
-    - name: Get dependencies
-      run: |
-        go get -v -t -d ./...
-
+        go-version: ${{ matrix.go-version }}
     - name: Test
       run: go test -race -coverprofile="coverage.txt" -covermode=atomic ./...
-
     - name: upload coverage
       uses: codecov/codecov-action@v1
       with:
